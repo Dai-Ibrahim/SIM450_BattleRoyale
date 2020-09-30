@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviourPun
     private int playersInGame;
     //instance
     public static GameManager instance;
+
+    public float postGameTime;
     // Start is called before the first frame update
     void Awake()
     {
@@ -35,6 +37,24 @@ public class GameManager : MonoBehaviourPun
         if (PhotonNetwork.IsMasterClient && playersInGame == PhotonNetwork.PlayerList.Length)
             photonView.RPC("SpawnPlayer", RpcTarget.All);
     }
+    public PlayerController GetPlayer(int playerId)
+    {
+        foreach(PlayerController player in players)
+        {
+            if (player != null & player.id == playerId)
+                return player;
+        }
+        return null;
+    }
+    public PlayerController GetPlayer(GameObject playerObj)
+    {
+        foreach (PlayerController player in players)
+        {
+            if (player != null & player.gameObject == playerObj)
+                return player;
+        }
+        return null;
+    }
 
     [PunRPC]
     void SpawnPlayer()
@@ -43,4 +63,24 @@ public class GameManager : MonoBehaviourPun
         // initialize player for all other players
         playerObj.GetComponent<PlayerController>().photonView.RPC("Initialize", RpcTarget.All, PhotonNetwork.LocalPlayer); 
     }
+
+    public void CheckWinCondition()
+    {
+        if (alivePlayers == 1)
+            photonView.RPC("WinGame", RpcTarget.All, players.First(x => !x.dead).id); 
+    }
+
+    [PunRPC]
+    void WinGame(int winningPlayer)
+    {
+        GameUI.instance.SetWinText(GetPlayer(winningPlayer).photonPlayer.NickName);
+        Invoke("GoBackToMenu", postGameTime);
+    }
+
+    void GoBackToMenu()
+    {
+        NetworkManager.instance.ChangeScene("Menu");
+    }
+
+        
 }

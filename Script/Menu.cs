@@ -176,11 +176,14 @@ public class Menu : MonoBehaviourPunCallbacks, ILobbyCallbacks
     }
     public void OnRefreshButton ()
     {
+        Debug.Log("Button Pressed");
         UpdateLobbyBrowserUI();
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> allRooms)
     {
+        Debug.Log("Room Created");
         roomList = allRooms;
+
     }
 }

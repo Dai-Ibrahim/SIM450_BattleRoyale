@@ -12,8 +12,18 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Awake()
     {
-        instance = this;
-        DontDestroyOnLoad(gameObject);
+        //Turn off any manager created that isnt this
+        if (instance != null && instance != this)
+        {
+           gameObject.SetActive(false);
+        } else
+        {
+            Debug.Log("Initialize Network Manager");
+           instance = this;
+           DontDestroyOnLoad(gameObject);
+        }
+          
+    
     }
 
     private void Start()
@@ -28,6 +38,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         options.MaxPlayers = (byte)maxPlayers;
 
         PhotonNetwork.CreateRoom(roomName, options);
+        Debug.Log("room " + roomName + " created");
+
     }
     public override void OnConnectedToMaster()
     {
@@ -37,6 +49,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public void JoinRoom (string roomName)
     {
+        Debug.Log("Player Joined room " + roomName);
         PhotonNetwork.JoinRoom(roomName);
     }
 
@@ -44,5 +57,18 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public void ChangeScene(string sceneName)
     {
         PhotonNetwork.LoadLevel(sceneName);
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        PhotonNetwork.LoadLevel("Menu");
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        GameManager.instance.alivePlayers--;
+        GameUI.instance.UpdatePlayerInfoText();
+        if (PhotonNetwork.IsMasterClient)
+            GameManager.instance.CheckWinCondition();
     }
 }
